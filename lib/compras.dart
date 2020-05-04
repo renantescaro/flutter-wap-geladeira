@@ -26,21 +26,24 @@ class ComprasPage extends StatefulWidget {
 class _ComprasPageState extends State<ComprasPage> {
   
   int _quantidade = 0;
+  final txtQuantidade = TextEditingController();
 
   void aumentarQuantidade(){
     setState(() {
       _quantidade++;
+      txtQuantidade.text = _quantidade.toString();
     });
   }
 
   void diminuirQuantidade(){
     setState(() {
       _quantidade--;
+      txtQuantidade.text = _quantidade.toString();
     });
   }
 
-  _mostrarQuantidade() {
-    showDialog(
+  Future<void> _mostrarQuantidade() async{
+    return showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -51,8 +54,10 @@ class _ComprasPageState extends State<ComprasPage> {
                 child: Text('-', style: TextStyle(fontSize: 30, color: Colors.white)),
                 onPressed: diminuirQuantidade,
               ),
-              Text(
-                '$_quantidade',
+              Expanded(  
+                child: TextField(
+                  controller: txtQuantidade,
+                ),
               ),
               RaisedButton(
                 child: Text('+', style: TextStyle(fontSize: 30, color: Colors.white)),
