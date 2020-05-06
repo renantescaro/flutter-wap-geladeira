@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'Api.dart';
 
 class Compras extends StatelessWidget{
   
@@ -25,7 +27,14 @@ class ComprasPage extends StatefulWidget {
 
 class _ComprasPageState extends State<ComprasPage> {
   
-  int _quantidade = 0;
+  int _quantidade    = 0;
+  int _qtdCesta      = 0;
+  int _qtdGeladeira  = 0;
+  double _valorTotal = 0;
+  double _valorProdutoCesta = 1;
+  double _valorProdutoGeladeira = 2;
+  String _usuarioLogado = 'renan teste';
+
   final txtQuantidade = TextEditingController();
 
   void aumentarQuantidade(){
@@ -37,12 +46,93 @@ class _ComprasPageState extends State<ComprasPage> {
 
   void diminuirQuantidade(){
     setState(() {
-      _quantidade--;
+      if(_quantidade>0){
+        _quantidade--;
+        txtQuantidade.text = _quantidade.toString();
+      }
+    });
+  }
+
+  void confirmarQuantidade(String opcaoSelecionada){
+    if(opcaoSelecionada=='cesta'){
+      setState(() {
+        _qtdCesta = _quantidade;
+      });
+    }else if(opcaoSelecionada=='geladeira'){
+      setState(() {
+        _qtdGeladeira = _quantidade;
+      });
+    }
+    setState(() {
+      _valorTotal = (_qtdCesta*_valorProdutoCesta) + (_qtdGeladeira*_valorProdutoGeladeira);
+    });
+    zerarquantidadeSelecionada();
+  }
+
+  void zerarquantidadeSelecionada(){
+    setState(() {
+      _quantidade=0;
       txtQuantidade.text = _quantidade.toString();
     });
   }
 
-  Future<void> _mostrarQuantidade() async{
+  finalizarCompra() async{
+    Api api = new Api();
+    dynamic retorno = await api.finalizarCompra();
+    String retornoFormatado = (json.decode(retorno as dynamic)['timestamp']).toString();
+    mostrarMensagem(retornoFormatado);
+  }
+
+  Future<void> mostrarMensagem(mensagem) async{
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          actions: <Widget>[
+            Text(mensagem)
+          ],
+        );
+      },
+    );
+  }
+
+  confirmarCompra(){
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Container(
+            height: 110,
+            child: Column(
+              children: <Widget>[
+                Text('Usuário: $_usuarioLogado\nValor da crompra de R\$ $_valorTotal \nDeseja confirmar?'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[                    
+                    RaisedButton(
+                      child: Text('Sim', style: TextStyle(fontSize: 15, color: Colors.white)),
+                      onPressed:(){
+                        Navigator.of(context).pop();
+                        finalizarCompra();
+                      }
+                    ),
+                    RaisedButton(
+                      child: Text('Não', style: TextStyle(fontSize: 15, color: Colors.white)),
+                      onPressed:(){
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ], 
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  mostrarQuantidade(String opcaoSelecionada){
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -57,6 +147,7 @@ class _ComprasPageState extends State<ComprasPage> {
               Expanded(  
                 child: TextField(
                   controller: txtQuantidade,
+                  textAlign: TextAlign.center,
                 ),
               ),
               RaisedButton(
@@ -67,9 +158,10 @@ class _ComprasPageState extends State<ComprasPage> {
           ),
           actions: <Widget>[
             FlatButton(
-              child: Text("Fechar"),
+              child: Text("Confirmar"),
               onPressed: () {
                 Navigator.of(context).pop();
+                confirmarQuantidade(opcaoSelecionada);
               },
             ),
           ],
@@ -78,7 +170,7 @@ class _ComprasPageState extends State<ComprasPage> {
     );
   }
 
-  void _comprar(){
+  void comprar(){
 
   }
 
@@ -105,23 +197,33 @@ class _ComprasPageState extends State<ComprasPage> {
               child:Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
-                  FlatButton(
-                    color: Colors.deepOrange,
-                    child: Image(
-                      image: AssetImage('assets/cesta.png'),
-                      height: 100,
+                  Column(
+                    children: <Widget>[
+                      FlatButton(
+                      color: Colors.deepOrange,
+                      child: Image(
+                        image: AssetImage('assets/cesta.png'),
+                        height: 100,
+                      ),
+                      padding: EdgeInsets.all(30),
+                      onPressed:()=>mostrarQuantidade('cesta'),
                     ),
-                    padding: EdgeInsets.all(30),
-                    onPressed: _mostrarQuantidade,
+                    Text('$_qtdCesta'),
+                    ],
                   ),
-                  FlatButton(
-                    color: Colors.deepOrange,
-                    child: Image(
-                      image: AssetImage('assets/geladeira.png'),
-                      height: 100,
-                    ),
-                    padding: EdgeInsets.all(30),
-                    onPressed: _mostrarQuantidade,
+                  Column(
+                    children: <Widget>[
+                      FlatButton(
+                        color: Colors.deepOrange,
+                        child: Image(
+                          image: AssetImage('assets/geladeira.png'),
+                          height: 100,
+                        ),
+                        padding: EdgeInsets.all(30),
+                        onPressed:()=>mostrarQuantidade('geladeira'),
+                      ),
+                      Text('$_qtdGeladeira')
+                    ],
                   ),
                 ]
               ) 
@@ -134,7 +236,7 @@ class _ComprasPageState extends State<ComprasPage> {
                   style: TextStyle(color: Colors.white)
                 ),
                 padding: EdgeInsets.all(30),
-                onPressed: _comprar,
+                onPressed: confirmarCompra,
               ),
             ),
           ],
