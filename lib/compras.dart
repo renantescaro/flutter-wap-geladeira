@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:ola_mundo/comprarNovamente.dart';
 import 'dart:convert';
 import 'Api.dart';
+import 'dart:developer' as developer;
 
 class Compras extends StatelessWidget{
   
+  Compras({this.email});
+  final String email;
+
   @override
   Widget build(BuildContext context){
     return MaterialApp(
@@ -11,29 +16,39 @@ class Compras extends StatelessWidget{
       theme: ThemeData(
         primarySwatch: Colors.deepOrange,
       ),
-      home: ComprasPage(title:'Compras'),
+      home: ComprasPage(title:'Compras', email:email),
     );
   }
 }
 
 class ComprasPage extends StatefulWidget {
-  ComprasPage({Key key, this.title}) : super(key: key);
+  ComprasPage({Key key, this.title, this.email}) : super(key: key);
 
   final String title;
+  final String email;
 
   @override
-  _ComprasPageState createState() => _ComprasPageState();
+  _ComprasPageState createState() => _ComprasPageState(email:email);
 }
 
 class _ComprasPageState extends State<ComprasPage> {
   
+  _ComprasPageState({this.email}){
+    if(email.length > 0){
+      _usuarioLogado = email.split("@")[0];
+    }
+    txtQuantidade.text = '0';
+  }
+
+  String email;
+
   int _quantidade    = 0;
   int _qtdCesta      = 0;
   int _qtdGeladeira  = 0;
   double _valorTotal = 0;
   double _valorProdutoCesta = 1;
   double _valorProdutoGeladeira = 2;
-  String _usuarioLogado = 'renan teste';
+  String _usuarioLogado = '';
 
   final txtQuantidade = TextEditingController();
 
@@ -78,9 +93,19 @@ class _ComprasPageState extends State<ComprasPage> {
 
   finalizarCompra() async{
     Api api = new Api();
-    dynamic retorno = await api.finalizarCompra();
-    String retornoFormatado = (json.decode(retorno as dynamic)['timestamp']).toString();
-    mostrarMensagem(retornoFormatado);
+    dynamic retorno = await api.finalizarCompra(email,_qtdGeladeira,_qtdCesta);
+
+    bool   sucesso  = (json.decode(retorno as dynamic)['sucesso']);
+    String mensagem = (json.decode(retorno as dynamic)['mensagem']).toString();
+
+    if(sucesso){
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ComprarNovamente()),
+      );
+    }else{
+      mostrarMensagem(mensagem);
+    }
   }
 
   Future<void> mostrarMensagem(mensagem) async{
@@ -89,14 +114,14 @@ class _ComprasPageState extends State<ComprasPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           actions: <Widget>[
-            Text(mensagem)
+            Text(mensagem, textAlign: TextAlign.left)
           ],
         );
       },
     );
   }
 
-  confirmarCompra(){
+  mostrarMensagemCompra(){
     return showDialog(
       context: context,
       builder: (context) {
@@ -105,10 +130,10 @@ class _ComprasPageState extends State<ComprasPage> {
             height: 110,
             child: Column(
               children: <Widget>[
-                Text('Usuário: $_usuarioLogado\nValor da crompra de R\$ $_valorTotal \nDeseja confirmar?'),
+                Text('Usuário: $_usuarioLogado\nValor da compra de R\$ $_valorTotal \nDeseja confirmar?'),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[                    
+                  children: <Widget>[
                     RaisedButton(
                       child: Text('Sim', style: TextStyle(fontSize: 15, color: Colors.white)),
                       onPressed:(){
@@ -130,6 +155,14 @@ class _ComprasPageState extends State<ComprasPage> {
         );
       },
     );
+  }
+
+  confirmarCompra(){
+    if(_qtdCesta == 0 && _qtdGeladeira == 0){
+      mostrarMensagem('Selecione a quantidade!\nClique no ícone da Cesta ou da Geladeira');
+    }else{
+      mostrarMensagemCompra();
+    }
   }
 
   mostrarQuantidade(String opcaoSelecionada){
@@ -168,10 +201,6 @@ class _ComprasPageState extends State<ComprasPage> {
         );
       },
     );
-  }
-
-  void comprar(){
-
   }
 
   Widget build(BuildContext context){

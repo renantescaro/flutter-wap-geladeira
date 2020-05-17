@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:passwordfield/passwordfield.dart';
 import 'package:flutter/services.dart';
 import 'compras.dart';
+import 'Api.dart';
+import 'dart:convert';
+import 'dart:developer' as developer;
 
 void main() => runApp(MyApp());
 
@@ -9,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Wap Geladeira',
       theme: ThemeData(
         primarySwatch: Colors.deepOrange,
       ),
@@ -28,22 +31,27 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String _email = 'renan.tescaro@wapstore.com.br';
 
   final txtEmail = TextEditingController();
   final txtSenha = TextEditingController();
 
-  void _validarLogin() {
+  void validarLogin() async{
     if(txtEmail.text == '' || txtSenha.text == ''){
       mostrarMensagem("Email e Senha devem ser preenchidos!");
     }else{
-      if(txtEmail.text == _email){
+      Api api = new Api();
+      dynamic retorno = await api.verificarLogin(txtEmail.text, txtSenha.text);
+
+      String mensagem = (json.decode(retorno as dynamic)['mensagem']);
+      bool   sucesso  = (json.decode(retorno as dynamic)['sucesso']);
+
+      if(sucesso){
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => Compras()),
+          MaterialPageRoute(builder: (context) => Compras(email:txtEmail.text)),
         );
       }else{
-        mostrarMensagem("Email ou Senha inválidos!");
+        mostrarMensagem(mensagem);
       }
     }
   }
@@ -92,7 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             RaisedButton(
-              onPressed: _validarLogin,
+              onPressed: validarLogin,
               color: Colors.deepOrange,
               child: Text('Fazer Login', style: TextStyle(color: Colors.white)),
               padding: EdgeInsets.only(left: 125, right: 125),
