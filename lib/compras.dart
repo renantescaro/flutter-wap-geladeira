@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ola_mundo/comprarNovamente.dart';
 import 'dart:convert';
 import 'Api.dart';
-import 'dart:developer' as developer;
+import 'historico.dart';
 
 class Compras extends StatelessWidget{
   
@@ -203,6 +203,13 @@ class _ComprasPageState extends State<ComprasPage> {
     );
   }
 
+  abrirHistoricoCompra(){
+    Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Historico()),
+      );
+  }
+
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
@@ -211,6 +218,11 @@ class _ComprasPageState extends State<ComprasPage> {
       body: Center(
         child: Column(
           children: <Widget>[
+            RaisedButton(
+              child:Text('Histórico',style: TextStyle(color: Colors.white)),
+              onPressed: abrirHistoricoCompra,
+              color: Colors.deepOrange,
+            ),
             Container(
               margin: EdgeInsets.only(top: 180),
               child: Text(

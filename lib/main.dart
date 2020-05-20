@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'compras.dart';
 import 'Api.dart';
 import 'dart:convert';
-import 'dart:developer' as developer;
 
 void main() => runApp(MyApp());
 
