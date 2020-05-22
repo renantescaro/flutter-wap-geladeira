@@ -4,7 +4,7 @@ import 'dart:developer' as developer;
 import 'Compra.dart';
 
 class Api{
-  final String urlApi = 'http://192.168.1.207';
+  final String urlApi = 'http://192.168.1.204';
 
   Future<List<Compra>> consultarComprasPorUsuario(String email) async{
     dynamic resposta = await getHttp(urlApi+'/?consultar-compras-usuario&email='+email);

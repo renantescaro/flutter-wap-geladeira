@@ -206,7 +206,7 @@ class _ComprasPageState extends State<ComprasPage> {
   abrirHistoricoCompra(){
     Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Historico()),
+        MaterialPageRoute(builder: (context) => Historico(email)),
       );
   }
 

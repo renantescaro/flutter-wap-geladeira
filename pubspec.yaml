@@ -17,6 +17,7 @@ environment:
   sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
+  date_format: ^1.0.8
   passwordfield: ^0.0.5
   http: ^0.12.1
   flutter:
